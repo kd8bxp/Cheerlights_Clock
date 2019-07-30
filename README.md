@@ -17,6 +17,9 @@ https://pastebin.com/BuKqBAK3
 (Weather Brief added) based on version 6 code base https://pastebin.com/BBHRsysN  
 (Other Boards added in based code) https://pastebin.com/4Sr17ux2  
 
+Other Revisions: (Maintained by cymplecy):  
+https://github.com/cymplecy/TTGO-T_DISPLAY-Cheerlights  
+
 ## Working Boards
 
 The default board is for the TTGO T-Display board, comment out the other boards if you are using a T-Display.  
@@ -93,9 +96,9 @@ https://kd8bxp.blogspot.com/
 
 ## Credits
 
-Martin Bateman, 
-@cymplecy
-LeRoy Miller
+Martin Bateman,   
+@cymplecy  
+LeRoy Miller  
 
 ## License
 
