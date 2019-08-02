@@ -26,6 +26,7 @@ The default board is for the TTGO T-Display board, comment out the other boards 
 TTGO T2 Board - uses a color OLED, and is smaller, a few changes needed to be made. IF you are using this board, uncomment the #define TTGO_T2.  
 M5StickC board was added, because (why not?) - to use this with a M5StickC board, comment the other board, uncomment the #define M5Stick_C 1  
 Adding other boards/displays should be easy and fairly straight forward. (Please share if you add other devices.).  
+Aug 1, added support for TTGO TS 144 board.  
 
 ## Features
 
@@ -57,6 +58,13 @@ Adafruit_GFX and Adafruit_SSD1331 are needed, both can be found in the library m
 For the M5StickC Install the M5StickC library from https://github.com/m5stack/M5StickC  
 
 The TTGO T-Display requires the TFT_eSPI library https://github.com/Bodmer/TFT_eSPI  
+
+TTGO TS 144 display requires Adafruit_GFX and Adafruit_ST7735 library, both should be in the library manager.  
+
+## Revision History
+
+v6.9 Aug 1, 2019 - added support for TTGO_TS_144 Board, changed how the weather and geolocation work (no longer grab lat/lon on each loop), added some spaces after weather brief.  
+
 
 ## Things that will change (maybe)
 

@@ -1,5 +1,5 @@
 /*
-  Cheerlights Clock v6.6
+  Cheerlights Clock v6.9
   based on @martinbateman clock code
  https://t.co/1gRc56wNOE
  https://pastebin.com/4Ec6d4xY
@@ -13,6 +13,7 @@ ported to TTGO T2 Board by LeRoy Miller July 25, 2019
 
 added Geolocate Timezone code July 25, 2019
 ported to M5StickC LeRoy Miller July 26, 2019
+added support for TTGO_TS_144 device Aug 1, 2019
 
 July 27 - updated M5StickC display to display weather description and temp.
  reformated screen for better display of time, and color and to make room for weather info.
@@ -25,7 +26,8 @@ July 27 - updated M5StickC display to display weather description and temp.
   * Update API Key with no reprogramming (done OTA update SPIFFS see https://github.com/me-no-dev/arduino-esp32fs-plugin for info on how to install, use https://github.com/me-no-dev/arduino-esp32fs-plugin/releases to get the tool)
   * Make for 24 hour (current) or 12 hour time (done July 30, 2019 LeRoy Miller)
   * Make temperatures either C or F (done July 30, 2019)
-  
+
+Aug 1 - added TTGO_TS_144 board, changed how the weather and geolocation work (no longer update lat/lon on each loop), added some spaces after weather brief.
 */
 
 #include <HTTPClient.h>
@@ -43,14 +45,15 @@ July 27 - updated M5StickC display to display weather description and temp.
 #include "SPIFFS.h"
 
 //Define your board type default to TTGO_T_Display
-//#define TTGO_T2
-#define M5Stick_C 1
+//#define TTGO_T2 1
+//#define M5Stick_C 1
+#define TTGO_TS_144 1 
 
 //Define your temperature units Default will be Celsius
 #define Fahrenheit //comment out for Celsius
 
 //Define 24 hour time (default) or 12 hour time
-#define HOUR12 //comment out for 24 hour time
+//#define HOUR12 //comment out for 24 hour time
 
 #ifdef TTGO_T2
   #include <Adafruit_GFX.h>
@@ -83,6 +86,16 @@ July 27 - updated M5StickC display to display weather description and temp.
   #define TFT_MAGENTA         0xF81F
   #define TFT_YELLOW          0xFFE0
   #define TFT_WHITE           0xFFFF
+#elif TTGO_TS_144
+  #include <Adafruit_GFX.h> 
+  #include <Adafruit_ST7735.h> 
+  #define TFT_CS 16
+  #define TFT_RST 9
+  #define TFT_DC 17
+  #define TFT_SCLK 5   // set these to be whatever pins you like!
+  #define TFT_MOSI 23   // set these to be whatever pins you like!
+  Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
+  #define TFT_BL          -1  // Display backlight control pin
 #else
   #include <TFT_eSPI.h>
   #define TFT_BL          4  // Display backlight control pin
@@ -121,8 +134,8 @@ NTPClient timeClient(ntpUDP);
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-String payload, TZone;//, lastUpdate;
-String coordinateTZ; //lat=xx.xxx&lon=xxx.xxx
+String payload;
+double lat, lon;
 
 SemaphoreHandle_t serialMutex = NULL;
 void updateNTP (void *pvParams);
@@ -212,6 +225,10 @@ void setup() {
   M5.Lcd.setRotation(3);
   M5.Lcd.fillScreen(TFT_BLACK);
   M5.Lcd.setTextColor(TFT_YELLOW, TFT_BLACK); // Note: the new fonts do not draw the background colour
+#elif TTGO_TS_144
+  tft.initR(INITR_144GREENTAB);
+  tft.setRotation(3); 
+  tft.fillScreen(ST7735_BLACK); 
 #else
   tft.init();
   tft.setRotation(1);
@@ -257,7 +274,8 @@ ArduinoOTA
 
 
   timeClient.begin();
-  geolocation (); // guess where I am
+  geolocation(); // guess where I am
+  getWeather(); //because we want weather, and dont need to update or lat/lon or timezone each loop.
   timeClient.setTimeOffset(gmtOffset_sec);
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
@@ -297,8 +315,7 @@ void getJson(String url) {
  */
 
 int geolocation(){
-  String url;
-  url = "http://ip-api.com/json";
+  String url = "http://ip-api.com/json";
   getJson(url);
  
   const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2) + 60;
@@ -307,22 +324,28 @@ int geolocation(){
   if (error){
       Serial.println ("deserializeJson () failed");
   }
-  double lat = jsonBuffer["lat"];
-  double lon = jsonBuffer["lon"];
-  url = "http://api.openweathermap.org/data/2.5/weather?lat=" + String(lat) + "&lon=" + String(lon) + "&appid=" + WEATHERKEY;
+  lat = jsonBuffer["lat"];
+  lon = jsonBuffer["lon"];
+}
+
+ void getWeather() { 
+ String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + String(lat) + "&lon=" + String(lon) + "&appid=" + WEATHERKEY;
   Serial.println(url);
   getJson(url);
-
+  const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2) + 60;
+  DynamicJsonDocument jsonBuffer(1024);
+  DeserializationError error = deserializeJson (jsonBuffer, payload);
   error = deserializeJson (jsonBuffer, payload);
   if (error){
       Serial.println ("deserializeJson () failed");
   }
-  gmtOffset_sec = jsonBuffer["timezone"];
+  gmtOffset_sec = jsonBuffer["timezone"]; //maybe causing a problem on new calls (?) may only need this one time (?)
   temperature = jsonBuffer["main"]["temp"];
   temperature = temperature - 273.0;
   //JsonObject obj = jsonBuffer.as<JsonObject>();
   
   weatherStatement = jsonBuffer["weather"][0]["description"].as<String>();
+  weatherStatement += "              ";
   Serial.println(temperature);
   Serial.println(weatherStatement);
 }
@@ -339,7 +362,7 @@ void updateNTP (void *pvParameters) {
       xSemaphoreGive (serialMutex);
     }
     vTaskDelay ((1000/portTICK_PERIOD_MS) * 60 * 15);  // update every 15 minutes.
-    geolocation (); // update based on location
+    getWeather(); //geolocation (); // update based on location
   }
 }
 
@@ -356,7 +379,11 @@ void updateScreen (void *pvParameters) {
       time_t t = now ();
    
 #ifdef HOUR12
+  #if defined (TTGO_TS_144) || defined (M5Stick_C)
+  sprintf (timeString, "%02i:%02i:%02i", hourFormat12(), minute (t), second (t));
+  #else
   sprintf(timeString, "%02i:%02i ", hourFormat12(), minute(t));
+  #endif
   if (isAM()) { 
     String temp = "AM";
     strcat (timeString , temp.c_str()); } else {
@@ -375,7 +402,7 @@ char out[25];
 
 String dayArray[9] = {"","Sun","Mon","Tue","Wed","Thr","Fri","Sat"};
 String monthArray[14] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day() + ", " + year();
+String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day() + ", " + year() + " ";
 //Serial.print("Date: "); Serial.print(dayArray[weekday()]); Serial.print(" "); Serial.print(monthArray[month()]); Serial.print(" ");Serial.print(day()); Serial.print(", "); Serial.println(year());
 
 #ifdef TTGO_T2
@@ -399,7 +426,11 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       tft.print(out);
 #elif M5Stick_C
       M5.Lcd.setTextColor(0x39C4, TFT_BLACK);
+      #ifdef HOUR12
+      M5.Lcd.setCursor(0,0,4);
+      #else
       M5.Lcd.setCursor(25,0,4);
+      #endif
       M5.Lcd.setTextColor(rgb565Decimal, TFT_BLACK);
       M5.Lcd.print(timeString); //tft.drawString (timeString, 10, 10, 7);
       M5.Lcd.setCursor(20,25,2);
@@ -412,6 +443,24 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       M5.Lcd.setCursor(118,60,2);
       //M5.Lcd.setTextColor(TFT_WHITE);
       M5.Lcd.print(out);
+#elif TTGO_TS_144
+      tft.setTextSize(2);
+      tft.setTextColor(0x39C4, ST7735_BLACK);
+      tft.setTextColor(rgb565Decimal, ST7735_BLACK);
+      tft.setCursor(0,0);
+      tft.print(timeString); 
+      tft.setTextSize(1);
+      tft.setCursor(12,17);
+      tft.print(dateString);
+      //tft.setCursor(0,4);
+      //tft.setTextSize(2);
+      //tft.print(colourString2);
+      tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
+      tft.setTextSize(1);
+      tft.setCursor(0,42);
+      tft.print(weatherStatement);
+      tft.setCursor(40,72);
+      tft.print(out);
 #else      
       tft.setTextColor(0x39C4, TFT_BLACK);
       tft.drawString("88:88:88",10,10,7);
