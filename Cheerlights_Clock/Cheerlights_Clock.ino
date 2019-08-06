@@ -1,5 +1,5 @@
 /*
-  Cheerlights Clock v6.9
+  Cheerlights Clock v7
   based on @martinbateman clock code
  https://t.co/1gRc56wNOE
  https://pastebin.com/4Ec6d4xY
@@ -28,6 +28,7 @@ July 27 - updated M5StickC display to display weather description and temp.
   * Make temperatures either C or F (done July 30, 2019)
 
 Aug 1 - added TTGO_TS_144 board, changed how the weather and geolocation work (no longer update lat/lon on each loop), added some spaces after weather brief.
+Aug 5 - added date to TTGO_T_DISPLAY
 */
 
 #include <HTTPClient.h>
@@ -47,7 +48,7 @@ Aug 1 - added TTGO_TS_144 board, changed how the weather and geolocation work (n
 //Define your board type default to TTGO_T_Display
 //#define TTGO_T2 1
 //#define M5Stick_C 1
-#define TTGO_TS_144 1 
+//#define TTGO_TS_144 1 
 
 //Define your temperature units Default will be Celsius
 #define Fahrenheit //comment out for Celsius
@@ -463,13 +464,16 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       tft.print(out);
 #else      
       tft.setTextColor(0x39C4, TFT_BLACK);
+      #ifndef HOUR12
       tft.drawString("88:88:88",10,10,7);
+      #endif
       tft.setTextColor(rgb565Decimal, TFT_BLACK);
       tft.drawString (timeString, 10, 10, 7);
+      tft.drawString(dateString,25,63, 4);
       tft.setTextColor(TFT_WHITE);
-      tft.setCursor(0,60,2);
+      tft.setCursor(0,100,4);
       tft.print(weatherStatement);
-      tft.setCursor(190, 60 ,2); 
+      tft.setCursor(175, 100 ,4); 
       tft.println(out);
 #endif
       
