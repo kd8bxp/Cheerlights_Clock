@@ -4,6 +4,9 @@ This project was seen on Twitter, as a interesting 24 hour clock, that changed c
 The original project is by @martinbateman, and was shared by @cymplecy.  
 The project took on a life of its own after a few tweets back and forth, and quickly turned into a full fledge collabration.  
 
+A nice 3D printed case for the TTGO T-Display board was found on thingiverse. Created by @vmensik. https://www.thingiverse.com/thing:3777859/  
+@vmensik also provided some code fixes for the "artifact" screen update issue, the fix is included in version 7.2  
+
 ## Original Project code
 
 The original project code can be found on pastebin.  
@@ -65,6 +68,7 @@ TTGO TS 144 display requires Adafruit_GFX and Adafruit_ST7735 library, both shou
 
 v6.9 Aug 1, 2019 - added support for TTGO_TS_144 Board, changed how the weather and geolocation work (no longer grab lat/lon on each loop), added some spaces after weather brief.  
 v7 Aug 5, 2019 - updated display for TTGO T-Display board.  
+v7.2 Aug 9, 2019 - minor fixes for artifacts issue on all boards. Fix provided by @vmensik  
 
 ## Things that will change (maybe)
 
@@ -104,9 +108,9 @@ https://kd8bxp.blogspot.com/
 
 ## Credits
 
-Martin Bateman,   
-@cymplecy  
-LeRoy Miller  
+Martin Bateman, and @cymplecy -original creators (who was first - I think Martin)  
+LeRoy Miller - added other boards, and provided an idea for geolocation for timezone.  
+@vmensik - v7.2 artifact issue fix.  
 
 ## License
 

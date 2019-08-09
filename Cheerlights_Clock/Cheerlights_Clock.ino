@@ -1,5 +1,5 @@
 /*
-  Cheerlights Clock v7
+  Cheerlights Clock v7.2
   based on @martinbateman clock code
  https://t.co/1gRc56wNOE
  https://pastebin.com/4Ec6d4xY
@@ -29,6 +29,9 @@ July 27 - updated M5StickC display to display weather description and temp.
 
 Aug 1 - added TTGO_TS_144 board, changed how the weather and geolocation work (no longer update lat/lon on each loop), added some spaces after weather brief.
 Aug 5 - added date to TTGO_T_DISPLAY
+Aug 8/9 - Applied @vmensik's fix for artifacts on all boards. 
+see https://www.thingiverse.com/thing:3777859/comments for more info.
+
 */
 
 #include <HTTPClient.h>
@@ -346,7 +349,7 @@ int geolocation(){
   //JsonObject obj = jsonBuffer.as<JsonObject>();
   
   weatherStatement = jsonBuffer["weather"][0]["description"].as<String>();
-  weatherStatement += "              ";
+  weatherStatement += "                    ";
   Serial.println(temperature);
   Serial.println(weatherStatement);
 }
@@ -439,7 +442,7 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       //M5.Lcd.setCursor(0,1,4);
       //M5.Lcd.print(colourString2);
       M5.Lcd.setCursor(0,60,2);
-      M5.Lcd.setTextColor(TFT_WHITE);
+      M5.Lcd.setTextColor(TFT_WHITE, TFT_BLACK);
       M5.Lcd.print(weatherStatement);
       M5.Lcd.setCursor(118,60,2);
       //M5.Lcd.setTextColor(TFT_WHITE);
@@ -464,17 +467,22 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       tft.print(out);
 #else      
       tft.setTextColor(0x39C4, TFT_BLACK);
-      #ifndef HOUR12
-      tft.drawString("88:88:88",10,10,7);
-      #endif
+     
+      //tft.drawString("88:88:88",10,10,7);
+      
       tft.setTextColor(rgb565Decimal, TFT_BLACK);
-      tft.drawString (timeString, 10, 10, 7);
+      #ifdef HOUR12
+      tft.drawString(timeString, 0, 0, 7);
+      #else
+      tft.drawString (timeString, 0, 0, 7);
+      #endif
       tft.drawString(dateString,25,63, 4);
-      tft.setTextColor(TFT_WHITE);
+      tft.setTextColor(TFT_WHITE, TFT_BLACK);
       tft.setCursor(0,100,4);
       tft.print(weatherStatement);
       tft.setCursor(175, 100 ,4); 
       tft.println(out);
+      
 #endif
       
     }
