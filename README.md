@@ -69,6 +69,7 @@ TTGO TS 144 display requires Adafruit_GFX and Adafruit_ST7735 library, both shou
 v6.9 Aug 1, 2019 - added support for TTGO_TS_144 Board, changed how the weather and geolocation work (no longer grab lat/lon on each loop), added some spaces after weather brief.  
 v7 Aug 5, 2019 - updated display for TTGO T-Display board.  
 v7.2 Aug 9, 2019 - minor fixes for artifacts issue on all boards. Fix provided by @vmensik  
+v7.3 Feb 24, 2020 - fix for AM/PM on the T-Display board. (issue #1)  
 
 ## Things that will change (maybe)
 

@@ -1,5 +1,5 @@
 /*
-  Cheerlights Clock v7.2
+  Cheerlights Clock v7.3
   based on @martinbateman clock code
  https://t.co/1gRc56wNOE
  https://pastebin.com/4Ec6d4xY
@@ -29,8 +29,7 @@ July 27 - updated M5StickC display to display weather description and temp.
 
 Aug 1 - added TTGO_TS_144 board, changed how the weather and geolocation work (no longer update lat/lon on each loop), added some spaces after weather brief.
 Aug 5 - added date to TTGO_T_DISPLAY
-Aug 8/9 - Applied @vmensik's fix for artifacts on all boards. 
-see https://www.thingiverse.com/thing:3777859/comments for more info.
+Feb 24, 2020 - fix for AM/PM not displayed on the T-Display device (issue #1 on github)
 
 */
 
@@ -386,13 +385,13 @@ void updateScreen (void *pvParameters) {
   #if defined (TTGO_TS_144) || defined (M5Stick_C)
   sprintf (timeString, "%02i:%02i:%02i", hourFormat12(), minute (t), second (t));
   #else
-  sprintf(timeString, "%02i:%02i ", hourFormat12(), minute(t));
+  sprintf(timeString, "%02i:%02i", hourFormat12(), minute(t));
   #endif
   if (isAM()) { 
     String temp = "AM";
     strcat (timeString , temp.c_str()); } else {
     String temp = "PM";
-    strcat(timeString, temp.c_str());}
+    strcat(timeString, temp.c_str());}   
 #else     
       sprintf (timeString, "%02i:%02i:%02i", hour (t), minute (t), second (t));
 #endif
@@ -473,6 +472,9 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       tft.setTextColor(rgb565Decimal, TFT_BLACK);
       #ifdef HOUR12
       tft.drawString(timeString, 0, 0, 7);
+      if (isAM()) { 
+        tft.drawString("AM", 145,0,4); } else {
+        tft.drawString("PM", 145, 0,4); }   
       #else
       tft.drawString (timeString, 0, 0, 7);
       #endif
