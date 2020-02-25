@@ -1,5 +1,5 @@
 /*
-  Cheerlights Clock v7.3
+  Cheerlights Clock v7.3.1
   based on @martinbateman clock code
  https://t.co/1gRc56wNOE
  https://pastebin.com/4Ec6d4xY
@@ -30,7 +30,8 @@ July 27 - updated M5StickC display to display weather description and temp.
 Aug 1 - added TTGO_TS_144 board, changed how the weather and geolocation work (no longer update lat/lon on each loop), added some spaces after weather brief.
 Aug 5 - added date to TTGO_T_DISPLAY
 Feb 24, 2020 - fix for AM/PM not displayed on the T-Display device (issue #1 on github)
-
+ v7.3.1 - added seconds display for T-Display board in AM/PM mode (using small font for display)
+ 
 */
 
 #include <HTTPClient.h>
@@ -474,7 +475,10 @@ String dateString = dayArray[weekday()] + " " + monthArray[month()] + " " + day(
       tft.drawString(timeString, 0, 0, 7);
       if (isAM()) { 
         tft.drawString("AM", 145,0,4); } else {
-        tft.drawString("PM", 145, 0,4); }   
+        tft.drawString("PM", 145, 0,4); } 
+        char temp[5];
+        sprintf (temp, ":%02i", second (t));
+        tft.drawString(temp /*":" + (String)second (t)*/, 140, 25, 4); 
       #else
       tft.drawString (timeString, 0, 0, 7);
       #endif

@@ -70,6 +70,7 @@ v6.9 Aug 1, 2019 - added support for TTGO_TS_144 Board, changed how the weather 
 v7 Aug 5, 2019 - updated display for TTGO T-Display board.  
 v7.2 Aug 9, 2019 - minor fixes for artifacts issue on all boards. Fix provided by @vmensik  
 v7.3 Feb 24, 2020 - fix for AM/PM on the T-Display board. (issue #1)  
+v7.3.1 added seconds for the T-Display board and AM/PM mode (small font)  
 
 ## Things that will change (maybe)
 
